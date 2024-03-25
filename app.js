@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 const fragranceRoutes = require("./src/routes/fragranceRoutes");
 const { StatusCodes, getReasonPhrase } = require("http-status-codes");
 const mongoose = require("mongoose");
+const cors = require("cors");
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -19,6 +20,24 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      const allowedOrigins = [process.env.MONDAY_WHITELIST];
+
+      if (
+        process.env.NODE_ENV === "development" ||
+        allowedOrigins.indexOf(origin) !== -1
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"), false);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/fragrance", fragranceRoutes);
